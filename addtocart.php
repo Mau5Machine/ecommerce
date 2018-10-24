@@ -50,13 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             // Attempt to execute prepared statement
             if ($stmt->execute()) {
                 // Item added to cart
-                require_once 'inc/functions.php';
-                if (updateInventory($sku, $quantity)) {
-                    echo "Inventory updated!";
-                }
-
+                header('location: cart.php');
+                exit;
             } else {
-
                 echo 'Something went wrong. Please try again later';
             }
 
