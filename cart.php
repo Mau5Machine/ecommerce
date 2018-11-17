@@ -2,16 +2,17 @@
 $pageTitle = "Shopping Cart";
 $page = null;
 $errorMessage = '';
-$counter = $qty = 0;
+include 'inc/functions.php';
 
 // prepare a sql statement
 $sql = "SELECT inventory.sku, inventory.title, inventory.unit_price, cart.in_cart
 FROM
 cart
 LEFT JOIN inventory ON (
-cart.sku = inventory.sku)
-ORDER BY inventory.title DESC";
+cart.sku = inventory.sku)";
 ?>
+
+
 
 <?php
 include 'inc/header.php';
@@ -23,6 +24,23 @@ include 'inc/header.php';
             <div class="page-header clearfix">
                 <h2 class="pull-left">Your Cart</h2>
             </div>
+            
+            <?php
+                if (isset($_GET['action']) && $_GET['action'] == 'updated') {
+                    echo "<h3 class='alert alert-warning animated 1 fadeOutUp delay-3s' id='action'>";
+                    echo "Updated Quantity";
+                    echo "</h3>";
+                } elseif (isset($_GET['action']) && $_GET['action'] == 'added') {
+                    echo "<h3 class='alert alert-success animated 1 fadeOutUp delay-3s' id='action'>";
+                    echo "Added Item To Your Cart!";
+                    echo "</h3>";
+                } elseif (isset($_GET['action']) && $_GET['action'] == 'deleted') {
+                    echo "<h3 class='alert alert-danger animated 1 fadeOutUp delay-3s' id='action'>";
+                    echo "Item Was Removed From Cart!";
+                    echo "</h3>";
+                }
+                
+                ?>
             <table class="table table-bordered table-striped">
                 <thead class="thead-dark">
                     <tr>
@@ -34,67 +52,45 @@ include 'inc/header.php';
                 </thead>
                 <tbody>
                     <?php
-                    // Include the connection file
+                        // Include the connection file
                     require_once 'inc/connect.php';
 
-                    // Attempt select query execution
+                        // Attempt select query execution
                     if ($results = $pdo->query($sql)) {
                         if ($results->rowCount() <= 0) {
-                            // Display a message if empty cart
-                            echo "<h3 class='alert alert-danger'>";
+                            echo "<h3 class='alert alert-danger animated 1 fadeOutUp delay-3s'>";
                             echo "This shopping cart is empty!";
                             echo "</h3>";
                         } else {
-                            // Loop through items in the cart to display
                             while ($row = $results->fetch(PDO::FETCH_ASSOC)) {
                                 echo "<tr>";
                                 echo "<td>" . $row['title'] . "</td>";
-                                echo "<td>$";
-                                echo $row['unit_price'] * $row['in_cart'] . "</td>";
+                                echo "<td>$" . $row['unit_price'] . "</td>";
                                 echo "<td>" . $row['in_cart'] . "</td>";
                                 echo "<td>";
                                 echo "<a href='details.php?sku=" . $row['sku'] . "' title='View Details' data-toggle='tooltip'><span class='glyphicon glyphicon-eye-open'></span></a>";
-                                echo "<a href='delete.php?sku=" . $row['sku'] . "' title='Delete Item' data-toggle='tooltip'><span class='glyphicon glyphicon-trash'></span></a>";
+                                echo "<a href='delete.php?sku=" . $row['sku'] . "&qty=" . $row['in_cart'] . "' title='Delete Item' data-toggle='tooltip'><span class='glyphicon glyphicon-trash'></span></a>";
                                 echo "</td>";
                                 echo "</tr>";
+                            }
+                        } ?>
 
-                                // Counter for total
-                                $counter += $row['unit_price'] * $row['in_cart'];
-                                // Counter for quantity
-                                $qty += $row['in_cart'];
-                            } ?>
-                    <tr>
-                        <td class="bg-primary bg-dark text-right"><strong>Total</strong></td>
-                        <td colspan="3" class="bg-primary bg-dark">
-                        
-                            <?php
-                            // Print the counter variable for the grand total
-                            echo "$ " . $counter;
-                            ?>
-                        </td>
-                    </tr>
                 </tbody>
             </table>
             <?php
-
-        } ?>
-
-
-            <?php
-            // unset results set
+                            // unset results set
             unset($results);
-        } else {
-            echo "ERROR: Something wrong with your SQL statement";
-        }
-        
-        // unset the connection
+                    } else {
+                        echo "ERROR: Something wrong with your SQL statement";
+                    }
+
         unset($pdo);
         ?>
         </div>
     </div>
     <a href="index.php" class="btn btn-primary">Back To Shopping</a>
+    <a href="clearcart.php" class="btn btn-danger">Clear Cart</a>
 </div>
-
 
 <?php
 include 'inc/footer.php';

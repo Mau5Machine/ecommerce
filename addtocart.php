@@ -2,65 +2,43 @@
 $pageTitle = "Shopping Cart";
 $page = null;
 $errorMessage = '';
+include 'inc/functions.php';
+require_once 'inc/connect.php';
 
-// Define variables and initialize with empty values
-$quantity = $sku = "";
-$quantity_err = $sku_err = "";
-
-// Processing form data when form is submitted
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
-
-    // Validate sku
-    $input_sku = trim($_POST['sku']);
-    if (empty($input_sku)) {
-        $sku_err = "No sku provided";
-        header('location: error.php');
-        exit;
+    // Validate the input
+    if (isset($_POST['sku']) && !empty($_POST['sku'])) {
+        $sku = $_POST['sku'];
     } else {
-        $sku = $input_sku;
+        header('location:index.php?error=error');
     }
-
-    // Validate quantity
-    $input_quantity = trim($_POST['quantity']);
-    if (empty($input_quantity)) {
-        $quantity_err = "Please enter a quantity";
-        header('location: error.php');
-        exit;
+    // Validate the input
+    if (isset($_POST['quantity']) && !empty($_POST['quantity']) && $_POST['quantity'] > 0) {
+        $quantity = $_POST['quantity'];
     } else {
-        $quantity = $input_quantity;
+        header('location:index.php?error=error');
     }
-
-    // Check input errors before inserting in database
-    if (empty($sku_err) && empty($quantity_err)) {
-
-        // Include connect file
-        require_once 'inc/connect.php';
-
-         // Prepare an insert statement
-        $sql = "INSERT INTO cart (sku, in_cart) VALUES (:sku, :in_cart)
-        ON DUPLICATE KEY UPDATE
-        in_cart = in_cart + :in_cart";
-
-        if ($stmt = $pdo->prepare($sql)) {
-
-            // Bind variables to the preapred statement as parameters
-            $stmt->bindParam(":sku", $sku, PDO::PARAM_STR);
-            $stmt->bindParam(":in_cart", $quantity, PDO::PARAM_INT);
-
-            // Attempt to execute prepared statement
-            if ($stmt->execute()) {
-                // Item added to cart
-                header('location: cart.php');
-                exit;
-            } else {
-                echo 'Something went wrong. Please try again later';
-            }
-
-            // close statement
-            unset($stmt);
+    // Check the stock of the item
+    $in_stock = inStock($sku);
+    // Update the stock of the item
+    if ($in_stock) {
+        if ($quantity < $in_stock) {
+            updateStock('subtract', $quantity, $sku);
+            header('location:cart.php?action=updated');
         }
-        // Close connection
-        unset($pdo);
-
+    } else {
+        header('location:index.php?error=error');
     }
+    // if item is already in cart, update cart
+    $item_exists = updateCart($sku, $quantity);
+    if ($item_exists == false) {
+        // if item is not in cart, add it to cart
+        if (addToCart($sku, $quantity)) {
+            header('location:cart.php?action=added');
+        } else {
+            header('location:index.php?error=error');
+        }
+    }
+} else {
+    echo "Nothing here!";
 }

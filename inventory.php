@@ -42,3 +42,9 @@
         </div>
     </div>
 </div>
+
+<div class="row">
+    <div class="col--md-4 col-sm-12">
+    <a href="cart.php">Go To Cart</a>
+    </div>
+</div>

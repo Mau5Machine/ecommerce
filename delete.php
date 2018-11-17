@@ -1,6 +1,7 @@
 <?php
 $pageTitle = "Remove Item?";
 $page = null;
+include 'inc/functions.php';
 
 // Process delete operation after confirmation
 if (isset($_POST['sku']) && !empty($_POST['sku'])) {
@@ -17,15 +18,17 @@ if (isset($_POST['sku']) && !empty($_POST['sku'])) {
         $stmt->bindParam(":sku", $param_sku);
 
         // Set parameters
+        $qty = $_GET['qty'];
         $param_sku = trim($_POST['sku']);
 
         // Attempt to execute the prepared statement
         if ($stmt->execute()) {
+            updateStock('add', $qty, $param_sku);
             // Item successfully removed from cart
-            header("location: cart.php");
+            header("location: cart.php?action=deleted");
             exit();
         } else {
-            echo "Oops! Something went wrong. Please try again later";
+            header('location: index.php?error=error');
         }
     }
 
@@ -40,7 +43,7 @@ if (isset($_POST['sku']) && !empty($_POST['sku'])) {
     if (empty(trim($_GET['sku']))) {
         
         // URL doesn't contain sku parameter. Redirect to error page
-        header("location: error.php");
+        header("location: index.php?error=error");
         exit();
     }
 }
